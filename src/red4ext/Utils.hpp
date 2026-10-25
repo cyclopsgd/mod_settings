@@ -10,6 +10,7 @@ std::wstring ToWString(const char* aText);
 
 #include "RED4ext/CName.hpp"
 #include <RED4ext/RED4ext.hpp>
+#include "BorrowedTextAbi.hpp"
 
 template<typename T>
 static void RedTypeFromString(T * pointer, const RED4ext::CString& str) {
@@ -17,80 +18,47 @@ static void RedTypeFromString(T * pointer, const RED4ext::CString& str) {
 }
 
 template<> void RedTypeFromString<bool>(bool * pointer, const RED4ext::CString& str) {
-  RED4ext::RawBuffer buffer;
-  buffer.data = (void*)str.c_str();
-  buffer.size = str.length;
-  RTTITYPE(3443526637)->FromString(pointer, buffer);
+  ModSettings::Abi::ParseText(RED4ext::CRTTISystem::Get()->GetType("Bool"), pointer, str.c_str(), str.Length());
 }
 
 template<> void RedTypeFromString<int8_t>(int8_t * pointer, const RED4ext::CString& str) {
-  RED4ext::RawBuffer buffer;
-  buffer.data = (void*)str.c_str();
-  buffer.size = str.length;
-  RTTITYPE(3415542724)->FromString(pointer, buffer);
+  ModSettings::Abi::ParseText(RED4ext::CRTTISystem::Get()->GetType("Int8"), pointer, str.c_str(), str.Length());
 }
 
 template<> void RedTypeFromString<int16_t>(int16_t * pointer, const RED4ext::CString& str) {
-  RED4ext::RawBuffer buffer;
-  buffer.data = (void*)str.c_str();
-  buffer.size = str.length;
-  RTTITYPE(3592162291)->FromString(pointer, buffer);
+  ModSettings::Abi::ParseText(RED4ext::CRTTISystem::Get()->GetType("Int16"), pointer, str.c_str(), str.Length());
 }
 
 template<> void RedTypeFromString<int32_t>(int32_t * pointer, const RED4ext::CString& str) {
-  RED4ext::RawBuffer buffer;
-  buffer.data = (void*)str.c_str();
-  buffer.size = str.length;
-  RTTITYPE(3590851569)->FromString(pointer, buffer);
+  ModSettings::Abi::ParseText(RED4ext::CRTTISystem::Get()->GetType("Int32"), pointer, str.c_str(), str.Length());
 }
 
 template<> void RedTypeFromString<int64_t>(int64_t * pointer, const RED4ext::CString& str) {
-  RED4ext::RawBuffer buffer;
-  buffer.data = (void*)str.c_str();
-  buffer.size = str.length;
-  RTTITYPE(3594652662)->FromString(pointer, buffer);
+  ModSettings::Abi::ParseText(RED4ext::CRTTISystem::Get()->GetType("Int64"), pointer, str.c_str(), str.Length());
 }
 
 template<> void RedTypeFromString<uint8_t>(uint8_t * pointer, const RED4ext::CString& str) {
-  RED4ext::RawBuffer buffer;
-  buffer.data = (void*)str.c_str();
-  buffer.size = str.length;
-  RTTITYPE(3648392249)->FromString(pointer, buffer);
+  ModSettings::Abi::ParseText(RED4ext::CRTTISystem::Get()->GetType("Uint8"), pointer, str.c_str(), str.Length());
 }
 
 template<> void RedTypeFromString<uint16_t>(uint16_t * pointer, const RED4ext::CString& str) {
-  RED4ext::RawBuffer buffer;
-  buffer.data = (void*)str.c_str();
-  buffer.size = str.length;
-  RTTITYPE(3832679528)->FromString(pointer, buffer);
+  ModSettings::Abi::ParseText(RED4ext::CRTTISystem::Get()->GetType("Uint16"), pointer, str.c_str(), str.Length());
 }
 
 template<> void RedTypeFromString<uint32_t>(uint32_t * pointer, const RED4ext::CString& str) {
-  RED4ext::RawBuffer buffer;
-  buffer.data = (void*)str.c_str();
-  buffer.size = str.length;
-  RTTITYPE(3831368806)->FromString(pointer, buffer);
+  ModSettings::Abi::ParseText(RED4ext::CRTTISystem::Get()->GetType("Uint32"), pointer, str.c_str(), str.Length());
 }
 
 template<> void RedTypeFromString<uint64_t>(uint64_t * pointer, const RED4ext::CString& str) {
-  RED4ext::RawBuffer buffer;
-  buffer.data = (void*)str.c_str();
-  buffer.size = str.length;
-  RTTITYPE(3835169899)->FromString(pointer, buffer);
+  ModSettings::Abi::ParseText(RED4ext::CRTTISystem::Get()->GetType("Uint64"), pointer, str.c_str(), str.Length());
 }
 
 template<> void RedTypeFromString<float>(float * pointer, const RED4ext::CString& str) {
-  RED4ext::RawBuffer buffer;
-  buffer.data = (void*)str.c_str();
-  buffer.size = str.length;
-  RTTITYPE(3665562711)->FromString(pointer, buffer);
+  ModSettings::Abi::ParseText(RED4ext::CRTTISystem::Get()->GetType("Float"), pointer, str.c_str(), str.Length());
 }
 
 template<> void RedTypeFromString<double>(double * pointer, const RED4ext::CString& str) {
-  RED4ext::RawBuffer buffer;
-  buffer.data = (void*)str.c_str();
-  buffer.size = str.length;
-  RTTITYPE(3892120764)->FromString(pointer, buffer);
+  ModSettings::Abi::ParseText(RED4ext::CRTTISystem::Get()->GetType("Double"), pointer, str.c_str(), str.Length());
 }
 
 template<> void RedTypeFromString<RED4ext::CName>(RED4ext::CName * pointer, const RED4ext::CString& str) {

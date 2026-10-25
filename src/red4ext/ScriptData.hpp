@@ -4,6 +4,7 @@
 namespace ModSettings {
 
 struct ScriptData {
+  void *unk00_25; // Retail 2.5: PR #33, 12abb063.
   RED4ext::HashMap<uint64_t, uint64_t> unk00;
   RED4ext::HashMap<uint64_t, uint64_t> unk30;
   RED4ext::HashMap<uint64_t, uint64_t> unk60;
@@ -18,5 +19,6 @@ struct ScriptData {
   uint8_t unk60MUTX;
   void *unk138;
 };
+RED4EXT_ASSERT_OFFSET(ScriptData, classes, 0xD8);
 
 }

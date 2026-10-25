@@ -38,25 +38,10 @@ RED4EXT_C_EXPORT bool RED4EXT_CALL Main(RED4ext::PluginHandle aHandle, RED4ext::
     auto ptr = GetModuleHandle(nullptr);
     aSdk->logger->InfoF(aHandle, "Base address: %p", ptr);
 
-    auto scriptsFolder = Utils::GetRootDir() / "r6" / "scripts" / "mod_settings";
-    if (std::filesystem::exists(scriptsFolder)) {
-      aSdk->logger->Info(aHandle, "Deleting old scripts folder");
-      std::filesystem::remove_all(scriptsFolder);
-    }
-    auto archive = Utils::GetRootDir() / "archive" / "pc" / "mod" / "ModSettings.archive";
-    if (std::filesystem::exists(archive)) {
-      aSdk->logger->Info(aHandle, "Deleting old archive");
-      std::filesystem::remove_all(archive);
-    }
-    auto archiveXL = Utils::GetRootDir() / "archive" / "pc" / "mod" / "ModSettings.archive.xl";
-    if (std::filesystem::exists(archiveXL)) {
-      aSdk->logger->Info(aHandle, "Deleting old archive.xl");
-      std::filesystem::remove_all(archiveXL);
-    }
-    auto XL = Utils::GetRootDir() / "archive" / "pc" / "mod" / "ModSettings.xl";
-    if (std::filesystem::exists(XL)) {
-      aSdk->logger->Info(aHandle, "Deleting old xl");
-      std::filesystem::remove_all(XL);
+    for (const auto& relative : {"r6/scripts/mod_settings", "archive/pc/mod/ModSettings.archive",
+                                "archive/pc/mod/ModSettings.archive.xl", "archive/pc/mod/ModSettings.xl"}) {
+      if (std::filesystem::exists(Utils::GetRootDir() / relative))
+        aSdk->logger->WarnF(aHandle, "Legacy Mod Settings path exists; manage it in Vortex, not automatically delete it: %s", relative);
     }
 
     Red::TypeInfoRegistrar::RegisterDiscovered();
@@ -82,10 +67,10 @@ RED4EXT_C_EXPORT bool RED4EXT_CALL Main(RED4ext::PluginHandle aHandle, RED4ext::
 RED4EXT_C_EXPORT void RED4EXT_CALL Query(RED4ext::PluginInfo *aInfo) {
   aInfo->name = L"Mod Settings";
   aInfo->author = L"Jack Humbert";
-  aInfo->version = RED4EXT_SEMVER(MOD_VERSION_MAJOR, MOD_VERSION_MINOR, MOD_VERSION_PATCH);
+  aInfo->version = RED4EXT_V1_SEMVER(MOD_VERSION_MAJOR, MOD_VERSION_MINOR, MOD_VERSION_PATCH);
   // aInfo->runtime = RED4EXT_RUNTIME_LATEST;
-  aInfo->runtime = RED4EXT_RUNTIME_INDEPENDENT;
-  aInfo->sdk = RED4EXT_SDK_LATEST;
+  aInfo->runtime = RED4EXT_V1_RUNTIME_VERSION_2_50;
+  aInfo->sdk = RED4EXT_V1_SDK_VERSION_CURRENT;
 }
 
-RED4EXT_C_EXPORT uint32_t RED4EXT_CALL Supports() { return RED4EXT_API_VERSION_LATEST; }
+RED4EXT_C_EXPORT uint32_t RED4EXT_CALL Supports() { return RED4EXT_API_VERSION_1_COMPAT_0; }

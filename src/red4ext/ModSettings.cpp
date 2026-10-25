@@ -556,7 +556,11 @@ void ModSettings::NotifyListenersRequested(CName aGroupPath, CName aVarName) {
         // RED4ext::CName varName = aVarName;
         // args.emplace_back(RED4ext::CRTTISystem::Get()->GetType("CName"), &groupPath);
         // args.emplace_back(RED4ext::CRTTISystem::Get()->GetType("CName"), &varName);
-        RED4ext::ExecuteFunction(instance, func, nullptr, aGroupPath, aVarName);
+        RED4ext::StackArgs_t args;
+        auto* nameType = RED4ext::CRTTISystem::Get()->GetType("CName");
+        args.emplace_back(nameType, &aGroupPath);
+        args.emplace_back(nameType, &aVarName);
+        RED4ext::ExecuteFunction(instance.instance, func, nullptr, args);
       }
     } else {
       // remove?
@@ -579,7 +583,11 @@ void ModSettings::NotifyListenersAccepted(CName aGroupPath, CName aVarName) {
         // RED4ext::CName varName = aVarName;
         // args.emplace_back(RED4ext::CRTTISystem::Get()->GetType("CName"), &groupPath);
         // args.emplace_back(RED4ext::CRTTISystem::Get()->GetType("CName"), &varName);
-        RED4ext::ExecuteFunction(instance, func, nullptr, aGroupPath, aVarName);
+        RED4ext::StackArgs_t args;
+        auto* nameType = RED4ext::CRTTISystem::Get()->GetType("CName");
+        args.emplace_back(nameType, &aGroupPath);
+        args.emplace_back(nameType, &aVarName);
+        RED4ext::ExecuteFunction(instance.instance, func, nullptr, args);
       }
     } else {
       // remove?

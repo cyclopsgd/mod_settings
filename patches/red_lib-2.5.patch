@@ -1,0 +1,82 @@
+diff --git a/deps/red_lib/include/Red/TypeInfo/Definition.hpp b/deps/red_lib/include/Red/TypeInfo/Definition.hpp
+--- a/deps/red_lib/include/Red/TypeInfo/Definition.hpp
++++ b/deps/red_lib/include/Red/TypeInfo/Definition.hpp
+@@ -388,7 +388,7 @@
+     constexpr uint32_t BaseCodeSize = OpSize + OffsetSize * 2 + PointerSize + FlagsSize + OpSize;
+     constexpr uint16_t BaseExitOffset = BaseCodeSize - OpSize - OffsetSize;
+ 
+-    const uint32_t extraCodeSize = aFunc->params.size * (OpSize + PointerSize) + (aFunc->returnType ? 1 : 0);
++    const uint32_t extraCodeSize = aFunc->params.Size() * (OpSize + PointerSize) + (aFunc->returnType ? 1 : 0);
+     const uint32_t finalCodeSize = BaseCodeSize + extraCodeSize;
+     const uint16_t finalExitOffset = BaseExitOffset + extraCodeSize;
+ 
+@@ -641,7 +641,7 @@
+ template<typename TClass>
+ class ClassDescriptorDefaultImpl : public ClassDescriptor<TClass>
+ {
+-    const bool IsEqual(const ScriptInstance aLhs, const ScriptInstance aRhs, uint32_t a3) final // 48
++    const bool IsEqual(const void* aLhs, const void* aRhs, uint32_t a3) final // 48
+     {
+         if constexpr (Detail::IsConstructionForwarded<TClass>)
+         {
+@@ -653,13 +653,13 @@
+         }
+         else
+         {
+-            using func_t = bool (*)(CClass*, const ScriptInstance, const ScriptInstance, uint32_t);
++            using func_t = bool (*)(CClass*, const void*, const void*, uint32_t);
+             UniversalRelocFunc<func_t> func(Detail::AddressHashes::TTypedClass_IsEqual);
+             return func(this, aLhs, aRhs, a3);
+         }
+     }
+ 
+-    void Assign(ScriptInstance aLhs, const ScriptInstance aRhs) const final // 50
++    void Assign(void* aLhs, const void* aRhs) const final // 50
+     {
+         if constexpr (Detail::IsConstructionForwarded<TClass>)
+         {
+@@ -670,7 +670,7 @@
+         }
+         else if constexpr (std::is_copy_constructible_v<TClass>)
+         {
+-            new (aLhs) TClass(*static_cast<TClass*>(aRhs));
++            new (aLhs) TClass(*static_cast<const TClass*>(aRhs));
+         }
+     }
+ 
+diff --git a/deps/red_lib/include/Red/TypeInfo/Invocation.hpp b/deps/red_lib/include/Red/TypeInfo/Invocation.hpp
+--- a/deps/red_lib/include/Red/TypeInfo/Invocation.hpp
++++ b/deps/red_lib/include/Red/TypeInfo/Invocation.hpp
+@@ -64,7 +64,7 @@
+     if (!aFunc)
+         return false;
+ 
+-    const auto combinedArgCount = aFunc->params.size + (aFunc->returnType ? 1 : 0);
++    const auto combinedArgCount = aFunc->params.Size() + (aFunc->returnType ? 1 : 0);
+ 
+     if (combinedArgCount != sizeof...(Args))
+         return false;
+@@ -93,7 +93,7 @@
+                 return false;
+             }
+ 
+-            if (aFunc->params.size)
++            if (aFunc->params.Size())
+             {
+                 stack.args = args.data() + 1;
+             }
+@@ -103,11 +103,11 @@
+             stack.args = args.data();
+         }
+ 
+-        if (aFunc->params.size)
++        if (aFunc->params.Size())
+         {
+-            stack.argsCount = aFunc->params.size;
++            stack.argsCount = aFunc->params.Size();
+ 
+-            for (uint32_t i = 0; i < aFunc->params.size; ++i)
++            for (uint32_t i = 0; i < aFunc->params.Size(); ++i)
+             {
+                 if (!Red::IsCompatible(aFunc->params[i]->type, stack.args[i].type, stack.args[i].value))
+                 {

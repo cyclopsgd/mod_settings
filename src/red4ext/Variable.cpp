@@ -7,6 +7,8 @@
 #include "Variable.hpp"
 #include "ModConfigVar.hpp"
 #include <algorithm>
+#include <fstream>
+#include <cstring>
 
 namespace ModSettings {
 
@@ -160,7 +162,7 @@ bool ModVariable::CreateRuntimeVariable(const Variable &var) {
 
 IModConfigVar * ModVariable::ToConfigVar() const {
   if (this->runtimeVar) {
-    auto configVar = this->configVarType->CreateInstance<IModConfigVar*>();
+    auto configVar = static_cast<IModConfigVar*>(this->configVarType->CreateInstance());
     configVar->SetRuntime(this->runtimeVar);
     return configVar;
   } else {
@@ -199,7 +201,10 @@ void ModClass::UnregisterListener(const Handle<IScriptable> &listener) {
   std::unique_lock _(*this->listeners_lock);
 
   if (listener && listener->ref && !listener->ref.Expired()) {
-    auto position = std::find(this->listeners.begin(), this->listeners.end(), WeakHandle<IScriptable>(listener));
+    auto position = std::find_if(this->listeners.begin(), this->listeners.end(),
+        [&listener](const auto& candidate) {
+          return candidate.instance == listener.instance && candidate.refCount == listener.refCount;
+        });
     if (position != this->listeners.end())
       this->listeners.erase(position);
   }
@@ -214,7 +219,7 @@ void ModClass::RegisterCallback(std::shared_ptr<runtime_class_callback_t> &callb
 
 void ModClass::SetDefaultValue(CName propertyName, ScriptInstance* value) const {
   if (this->type) {
-      for (auto i = 0; i < this->type->defaults.keys.size; i++) {
+      for (auto i = 0; i < this->type->defaults.keys.Size(); i++) {
         if (this->type->defaults.keys[i] == propertyName) {
           // sdk->logger->InfoF(pluginHandle, "Loaded %s.%s", this->name.ToString(), propertyName.ToString());
           auto propType = this->type->defaults.values[i]->GetType();
@@ -376,7 +381,7 @@ void ModSettingsVariable::SetRequestedValues() {
   auto classType = RED4ext::CRTTISystem::Get()->GetClass(className);
   if (classType) {
     auto valuePtr = runtimeVar->GetAcceptedValue();
-    for (auto i = 0; i < classType->defaults.keys.size; i++) {
+    for (auto i = 0; i < classType->defaults.keys.Size(); i++) {
       if (classType->defaults.keys[i] == runtimeVar->name) {
         sdk->logger->InfoF(pluginHandle, "Loaded %s.%s", className.ToString(), runtimeVar->name.ToString());
         auto propType = classType->defaults.values[i]->GetType();
@@ -397,7 +402,9 @@ void ModSettingsVariable::SetRequestedValues() {
 
 Handle<RED4ext::user::SettingsVar> ModSettingsVariable::CreateConfigVar() {
   auto configVar = this->configVarType->CreateInstance<RED4ext::user::SettingsVar*>();
-  configVar->runtimeVar = this->runtimeVar;
+  // The old SDK named this field runtimeVar; the retail generated header
+  // preserves its eight bytes at +0x40 as unk40. No class redefinition.
+  std::memcpy(configVar->unk40, &this->runtimeVar, sizeof(this->runtimeVar));
   auto handle = Handle(configVar);
   handle.refCount->IncRef();
   return handle;

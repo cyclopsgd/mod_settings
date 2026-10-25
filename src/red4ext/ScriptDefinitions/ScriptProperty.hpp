@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Variable.hpp"
+#include "BorrowedTextAbi.hpp"
 #include <RED4ext/InstanceType.hpp>
 #include <RED4ext/RTTITypes.hpp>
 #include "ScriptDefinitions/ScriptDefinitions.hpp"
@@ -42,10 +43,7 @@ struct ScriptProperty : ScriptDefinition {
   }
 
   void FromString(RED4ext::ScriptInstance pointer, const RED4ext::CString& str) const {
-    RED4ext::RawBuffer buffer;
-    buffer.data = (void*)str.c_str();
-    buffer.size = str.Length();
-    this->GetType()->FromString(pointer, buffer);
+    Abi::ParseText(this->GetType(), pointer, str.c_str(), str.Length());
   }
 
   // ReadProperty(CName)
@@ -71,11 +69,8 @@ struct ScriptProperty : ScriptDefinition {
   template <> uint32_t ReadProperty(const RED4ext::CName &name) const {
     auto str = this->runtimeProperties.Get(name);
     if (str) {
-      uint32_t value;
-      RED4ext::RawBuffer buffer;
-      buffer.data = (void*)str->c_str();
-      buffer.size = str->length;
-      RED4ext::CRTTISystem::Get()->GetType("Uint32")->FromString(&value, buffer);
+      uint32_t value{};
+      Abi::ParseText(RED4ext::CRTTISystem::Get()->GetType("Uint32"), &value, str->c_str(), str->Length());
       return value;
     } else {
       return 0;
@@ -85,11 +80,8 @@ struct ScriptProperty : ScriptDefinition {
   template <> int32_t ReadProperty(const RED4ext::CName &name) const {
     auto str = this->runtimeProperties.Get(name);
     if (str) {
-      int32_t value;
-      RED4ext::RawBuffer buffer;
-      buffer.data = (void*)str->c_str();
-      buffer.size = str->length;
-      RED4ext::CRTTISystem::Get()->GetType("Int32")->FromString(&value, buffer);
+      int32_t value{};
+      Abi::ParseText(RED4ext::CRTTISystem::Get()->GetType("Int32"), &value, str->c_str(), str->Length());
       return value;
     } else {
       return 0;
@@ -143,20 +135,14 @@ struct ScriptProperty : ScriptDefinition {
   template <> void ReadProperty<uint32_t>(const RED4ext::CName &name, uint32_t *pointer) const {
     auto str = this->runtimeProperties.Get(name);
     if (str && pointer) {
-      RED4ext::RawBuffer buffer;
-      buffer.data = (void*)str->c_str();
-      buffer.size = str->length;
-      RED4ext::CRTTISystem::Get()->GetType("Uint32")->FromString(pointer, buffer);
+      Abi::ParseText(RED4ext::CRTTISystem::Get()->GetType("Uint32"), pointer, str->c_str(), str->Length());
     }
   }
 
   template <> void ReadProperty<int32_t>(const RED4ext::CName &name, int32_t *pointer) const {
     auto str = this->runtimeProperties.Get(name);
     if (str && pointer) {
-      RED4ext::RawBuffer buffer;
-      buffer.data = (void*)str->c_str();
-      buffer.size = str->length;
-      RED4ext::CRTTISystem::Get()->GetType("Int32")->FromString(pointer, buffer);
+      Abi::ParseText(RED4ext::CRTTISystem::Get()->GetType("Int32"), pointer, str->c_str(), str->Length());
     }
   }
 
@@ -174,10 +160,7 @@ struct ScriptProperty : ScriptDefinition {
   template <> void ReadProperty<float>(const RED4ext::CName &name, float *pointer) const {
     auto str = this->runtimeProperties.Get(name);
     if (str && pointer) {
-      RED4ext::RawBuffer buffer;
-      buffer.data = (void*)str->c_str();
-      buffer.size = str->length;
-      RED4ext::CRTTISystem::Get()->GetType("Float")->FromString(pointer, buffer);
+      Abi::ParseText(RED4ext::CRTTISystem::Get()->GetType("Float"), pointer, str->c_str(), str->Length());
     }
   }
 
@@ -224,7 +207,7 @@ struct ScriptProperty : ScriptDefinition {
   }
 
   void ReadDefaultValue(RED4ext::ScriptInstance pointer) const {
-    if (this->defaultValues.size) {
+    if (this->defaultValues.Size()) {
       this->FromString(pointer, this->defaultValues[0]);
     }
   }
@@ -241,7 +224,8 @@ struct ScriptProperty : ScriptDefinition {
   RED4ext::HashMap<RED4ext::CName, RED4ext::CString> runtimeProperties;
   ScriptType *type;
 };
-RED4EXT_ASSERT_SIZE(ScriptProperty, 0x98);
-RED4EXT_ASSERT_OFFSET(ScriptProperty, runtimeProperties, 0x60);
+RED4EXT_ASSERT_SIZE(ScriptProperty, 0xC0);
+RED4EXT_ASSERT_OFFSET(ScriptProperty, runtimeProperties, 0x88);
+RED4EXT_ASSERT_OFFSET(ScriptProperty, type, 0xB8);
 
 }

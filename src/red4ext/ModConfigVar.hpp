@@ -1,5 +1,5 @@
 #pragma once
-#include "RED4ext/Scripting/Natives/userSettingsVar.hpp"
+#include <RED4ext/Scripting/Natives/Generated/user/SettingsVar.hpp>
 #include "RuntimeVariable.hpp"
 #include "ScriptDefinitions/ScriptDefinitions.hpp"
 #include "Scripting/RTTIClass.hpp"
@@ -92,7 +92,7 @@ RTTI_DEFINE_CLASS(ModConfigVarRange<int32_t>, "ModConfigVarInt32", {
 struct ModConfigVarEnum : IModConfigVar {
   int32_t GetValueFor(int32_t index) {
     auto varEnum = reinterpret_cast<ModSettings::RuntimeVariableEnum *>(this->runtimeVar);
-    if (varEnum->values.size > index) {
+    if (varEnum->values.Size() > index) {
       return varEnum->values[index];
     } else {
       return 0;
@@ -118,7 +118,7 @@ struct ModConfigVarEnum : IModConfigVar {
     auto varEnum = reinterpret_cast<ModSettings::RuntimeVariableEnum *>(this->runtimeVar);
     auto values = RED4ext::DynArray<int32_t>(new RED4ext::Memory::DefaultAllocator());
     int32_t index = -1;
-    for (int i = 0; i < varEnum->values.size; i++) {
+    for (int i = 0; i < varEnum->values.Size(); i++) {
       if (varEnum->values[i] == value) {
         index = i;
       }
@@ -134,7 +134,7 @@ struct ModConfigVarEnum : IModConfigVar {
 
   RED4ext::CName GetDisplayValue(int32_t index) {
     auto varEnum = reinterpret_cast<ModSettings::RuntimeVariableEnum *>(this->runtimeVar);
-    if (varEnum->displayValues.size > index && index > -1) {
+    if (varEnum->displayValues.Size() > index && index > -1) {
       return varEnum->displayValues[index];
     } else {
       return "None";

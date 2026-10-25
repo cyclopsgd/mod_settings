@@ -4,13 +4,13 @@
 #include <ModSettings.hpp>
 
 UserMapping::RawMappingCollection * UserMapping::GetMappingCollection(CName mapName) {
-  static UniRelocFunc<decltype(&UserMapping::GetMappingCollection)> call(3702071356);
+  static UniversalRelocFunc<UserMapping::RawMappingCollection* (*)(UserMapping*, CName)> call(3702071356);
   return call(this, mapName);
 }
 
 void UserMapping::ClearRuntimeDataOnRawMappings() {
-  static UniRelocFunc<decltype(&UserMapping::ClearRuntimeDataOnRawMappings)> call(4196866905);
-  return call(this);
+  static UniversalRelocFunc<void (*)(UserMapping*)> call(4196866905);
+  call(this);
 }
 
 // bool Manager::CheckOverrideConflicts(CName contextName, unsigned short key, DynArray<OverridableMapping> & conflicts) const {

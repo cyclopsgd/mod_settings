@@ -90,6 +90,18 @@ jobs:
           Add-Content $env:GITHUB_STEP_SUMMARY $hashes
           Add-Content $env:GITHUB_STEP_SUMMARY '```'
 
+      - name: Report the package as an annotation
+        shell: pwsh
+        run: |
+          $files = Get-ChildItem -Recurse -File package | ForEach-Object {
+            '{0} {1} {2}' -f (Get-FileHash -Algorithm SHA256 $_.FullName).Hash.ToLower(), $_.Length, $_.Name
+          }
+          $exports = dumpbin /exports build-native\mod_settings.dll |
+            Select-String -Pattern '^\s+\d+\s+[0-9A-F]+\s+[0-9A-F]{8}\s+(\S+)' |
+            ForEach-Object { $_.Matches[0].Groups[1].Value }
+          $lines = @($files) + @("exports: $($exports -join ' ')")
+          Write-Output "::notice title=mod_settings package::$($lines -join '%0A')"
+
       - uses: actions/upload-artifact@v4
         with:
           name: mod_settings-0.2.21-game2.5-build${{ github.run_number }}

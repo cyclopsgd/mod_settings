@@ -1,5 +1,8 @@
 name: Build Workflow
-on: [ push, pull_request ]
+on:
+  push:
+    branches-ignore: [ game-2.5 ]  # built by build-2.5.yaml instead
+  pull_request:
 
 jobs:
   build:

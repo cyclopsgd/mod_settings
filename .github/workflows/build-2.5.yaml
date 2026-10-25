@@ -1,0 +1,105 @@
+name: Build for game 2.5 (unofficial)
+
+on:
+  push:
+    branches: [ game-2.5 ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build mod_settings for game 2.5
+    runs-on: windows-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Keep LF line endings so the RedLib patch applies
+        run: |
+          git config --global core.autocrlf false
+          git config --global core.eol lf
+
+      - uses: actions/checkout@v4
+        with:
+          submodules: true
+
+      - name: Apply the RedLib patch for the 2.5 SDK
+        run: git -C deps/red_lib apply -p3 --verbose ../../patches/red_lib-2.5.patch
+
+      - uses: ilammy/msvc-dev-cmd@v1.12.1
+        with:
+          arch: amd64
+
+      - name: Configure
+        run: cmake -S native-local -B build-native -G Ninja -DCMAKE_BUILD_TYPE=RelWithDebInfo
+
+      - name: Build
+        run: cmake --build build-native
+
+      - name: Run the BorrowedTextAbi test
+        timeout-minutes: 2
+        run: .\build-native\BorrowedTextAbiTest.exe
+
+      - name: Check the plugin exports
+        shell: pwsh
+        run: |
+          $exports = dumpbin /exports build-native\mod_settings.dll | Out-String
+          Write-Output $exports
+          foreach ($name in 'Main', 'Query', 'Supports') {
+            if ($exports -notmatch "\b$name\b") { throw "mod_settings.dll does not export $name" }
+          }
+
+      - name: Pack the redscript sources
+        shell: pwsh
+        run: |
+          $root = (Get-Location).Path.Replace('\', '/')
+          $sha = "${{ github.sha }}".Substring(0, 7)
+          @(
+            'Mod Settings 0.2.21'
+            'Copyright (c) 2023 Jack Humbert. All rights reserved.'
+            'Licensed under the MIT license. See the license.md in the root project for details.'
+            'https://github.com/jackhumbert/mod_settings'
+            "Unofficial game 2.5 build from ${{ github.repository }}@$sha"
+          ) | Set-Content -Encoding utf8NoBOM build-native/Header.txt
+          $packArgs = @(
+            '-D', 'COMMENT_SLUG=//', '-D', 'GLOB_EXT=reds'
+            '-D', "HEADER_FILE=$root/build-native/Header.txt"
+            '-D', "PACKED_FILE=$root/build-native/packed.reds"
+            '-D', "SEARCH_FOLDER=$root/src/redscript"
+            '-P', 'deps/cpcmake/scripts/PackFiles.cmake'
+          )
+          cmake @packArgs
+          if ($LASTEXITCODE -ne 0) { throw "packing redscript failed" }
+          $module = Get-Content -Raw src/redscript/Module.reds.in
+          $module = $module.Replace('@PROJECT_VERSION_MAJOR@', '0').Replace('@PROJECT_VERSION_MINOR@', '2').Replace('@PROJECT_VERSION_PATCH@', '21')
+          Set-Content -NoNewline -Encoding utf8NoBOM -Path build-native/module.reds -Value $module
+
+      - name: Assemble the game folder layout
+        shell: pwsh
+        run: |
+          $dest = 'package/red4ext/plugins/mod_settings'
+          New-Item -ItemType Directory -Force $dest, symbols | Out-Null
+          Copy-Item build-native/mod_settings.dll, build-native/packed.reds, build-native/module.reds $dest
+          Copy-Item src/wolvenkit/packed/archive/pc/mod/ModSettings.archive, src/archiveXL/ModSettings.archive.xl $dest
+          Copy-Item license.md, readme.md $dest
+          Copy-Item build-native/mod_settings.pdb symbols/
+          $hashes = Get-ChildItem -Recurse -File package, symbols | Get-FileHash -Algorithm SHA256 |
+            ForEach-Object { '{0}  {1}' -f $_.Hash.ToLower(), (Resolve-Path -Relative $_.Path) }
+          $hashes | Set-Content sha256.txt
+          $hashes
+          Add-Content $env:GITHUB_STEP_SUMMARY '### Files'
+          Add-Content $env:GITHUB_STEP_SUMMARY '```text'
+          Add-Content $env:GITHUB_STEP_SUMMARY $hashes
+          Add-Content $env:GITHUB_STEP_SUMMARY '```'
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: mod_settings-0.2.21-game2.5-build${{ github.run_number }}
+          path: package/
+          if-no-files-found: error
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: mod_settings-symbols-build${{ github.run_number }}
+          path: |
+            symbols/
+            sha256.txt
+          if-no-files-found: error
